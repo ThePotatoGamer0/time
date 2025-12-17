@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Countdown | potatogamer.uk</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --ui-border: #444444;
+        }
+
+        body.light-mode {
+            --bg-color: #ffffff;
+            --text-main: #000000;
+            --text-dim: #666666;
+            --ui-border: #cccccc;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .theme-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-main);
+            padding: 5px;
+            z-index: 10;
+        }
+
+        .theme-btn svg { width: 32px; height: 32px; }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        select {
+            background: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--ui-border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .container { text-align: center; width: 90%; max-width: 800px; }
+
+        .label {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #time-until-class {
+            font-size: clamp(4rem, 15vw, 10rem);
+            font-weight: 800;
+            line-height: 1;
+            margin: 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #next-class-preview {
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-height: 1.2em; /* Prevents layout jump */
+        }
+
+        .sub-timers {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 50px;
+            gap: 80px;
+        }
+
+        .sub-box { text-align: center; }
+
+        .sub-value {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .sub-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        #test-indicator {
+            position: absolute;
+            bottom: 10px;
+            color: #ff4444;
+            font-size: 0.8rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <g id="sun-svg"><path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5001M17.6859 17.69L18.5 18.5001M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+            <g id="moon-svg" style="display: none;"><path d="M3.32031 11.6835C3.32031 16.6541 7.34975 20.6835 12.3203 20.6835C16.1075 20.6835 19.3483 18.3443 20.6768 15.032C19.6402 15.4486 18.5059 15.6834 17.3203 15.6834C12.3497 15.6834 8.32031 11.654 8.32031 6.68342C8.32031 5.50338 8.55165 4.36259 8.96453 3.32996C5.65605 4.66028 3.32031 7.89912 3.32031 11.6835Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+        </svg>
+    </button>
+
+    <div class="controls">
+        <select id="userSelector">
+            <option value="user1">James</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div id="status-label" class="label">Status</div>
+        <div id="time-until-class">00:00:00</div>
+        <div id="next-class-preview"></div>
+
+        <div class="sub-timers">
+            <div class="sub-box">
+                <div id="time-until-period" class="sub-value">--:--</div>
+                <div class="sub-label">End of Period</div>
+            </div>
+            <div class="sub-box">
+                <div id="time-until-day" class="sub-value">--:--</div>
+                <div class="sub-label">End of Day</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="test-indicator">TEST MODE ACTIVE</div>
+
+    <script>
+        const PERIODS_LONG = [
+            { id: "0", start: "09:10", end: "09:25", type: "reg" },
+            { id: "1", start: "09:25", end: "10:05", type: "p" },
+            { id: "2", start: "10:05", end: "10:45", type: "p" },
+            { id: "break", start: "10:45", end: "11:00", type: "break" },
+            { id: "3", start: "11:00", end: "11:40", type: "p" },
+            { id: "4", start: "11:40", end: "12:20", type: "p" },
+            { id: "5", start: "12:20", end: "13:00", type: "p" },
+            { id: "6", start: "13:00", end: "13:35", type: "p" },
+            { id: "7", start: "13:35", end: "14:10", type: "p" },
+            { id: "8", start: "14:10", end: "14:50", type: "p" },
+            { id: "9", start: "14:50", end: "15:30", type: "p" }
+        ];
+
+        const PERIODS_SHORT = [
+            { id: "0", start: "09:10", end: "09:25", type: "reg" },
+            { id: "1", start: "09:25", end: "10:05", type: "p" },
+            { id: "2", start: "10:05", end: "10:45", type: "p" },
+            { id: "3", start: "10:45", end: "11:25", type: "p" },
+            { id: "4", start: "11:25", end: "12:05", type: "p" },
+            { id: "5", start: "12:05", end: "12:45", type: "p" },
+            { id: "6", start: "12:45", end: "13:25", type: "p" },
+            { id: "7", start: "13:25", end: "14:05", type: "p" }
+        ];
+
+        const userData = {
+            user1: {
+                timetable: {
+                    1: { // Monday (Long Day)
+                        "0": "Reg", "1": "Study", "2": "Study", "3": "IT", "4": "IT", 
+                        "5": "Science", "6": "Science", "break": "Break", "7": "Lunch", "8": "Env Tech", "9": "Env Tech" 
+                    },
+                    2: { // Tuesday (Long Day)
+                        "0": "Reg", "1": "Env Tech", "2": "Env Tech", "3": "English", "4": "English", 
+                        "5": "Science", "break": "Break", "6": "Lunch", "7": "Science", "8": "Study", "9": "Study" 
+                    },
+                    3: { // Wednesday (Short Day)
+                        "0": "Reg", "1": "IT", "2": "IT", "3": "English", "4": "English", 
+                        "5": "Lunch", "6": "Env Tech", "7": "Env Tech" 
+                    },
+                    4: { // Thursday (Long Day)
+                        "0": "Reg", "1": "IT", "2": "IT", "3": "Env Tech", "4": "Env Tech", 
+                        "5": "Science", "6": "Science", "break": "Break", "7": "Lunch", "8": "Study", "9": "Study" 
+                    },
+                    5: { // Friday (Short Day)
+                        "0": "Reg", "1": "Study", "2": "Study", "3": "Lunch", "4": "Science", 
+                        "5": "Science", "6": "IT", "7": "IT" 
+                    }
+                }
+            }
+        };
+
+        function timeToMins(t) {
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function formatDiff(totalSeconds) {
+            if (totalSeconds <= 0) return "00:00:00";
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = Math.floor(totalSeconds % 60);
+            return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function update() {
+            const params = new URLSearchParams(window.location.search);
+            const testTime = params.get('t');
+            
+            let now = new Date();
+            let currentSecs;
+
+            if (testTime) {
+                document.getElementById('test-indicator').style.display = 'block';
+                const parts = testTime.split(':').map(Number);
+                const h = parts[0];
+                const m = parts[1];
+                const s = parts[2] || 0;
+                currentSecs = (h * 3600) + (m * 60) + s;
+            } else {
+                document.getElementById('test-indicator').style.display = 'none';
+                currentSecs = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+            }
+
+            const currentMins = Math.floor(currentSecs / 60);
+            const day = now.getDay(); 
+            const isShort = (day === 3 || day === 5);
+            const schedule = isShort ? PERIODS_SHORT : PERIODS_LONG;
+            const user = document.getElementById('userSelector').value;
+            const userClasses = userData[user]?.timetable[day] || {};
+
+            // 1. End of Day
+            const schoolEndSecs = timeToMins(schedule[schedule.length - 1].end) * 60;
+            const diffEndDay = schoolEndSecs - currentSecs;
+            document.getElementById('time-until-day').innerText = diffEndDay > 0 ? formatDiff(diffEndDay) : "--:--";
+
+            // 2. End of Period
+            let currentPeriodIdx = schedule.findIndex(p => currentMins >= timeToMins(p.start) && currentMins < timeToMins(p.end));
+            let currentPeriod = currentPeriodIdx !== -1 ? schedule[currentPeriodIdx] : null;
+            
+            if (currentPeriod) {
+                const periodEndSecs = timeToMins(currentPeriod.end) * 60;
+                document.getElementById('time-until-period').innerText = formatDiff(periodEndSecs - currentSecs);
+            } else {
+                document.getElementById('time-until-period').innerText = "--:--";
+            }
+
+            // 3. Central Class Logic
+            let activeClassName = (currentPeriod && userClasses[currentPeriod.id]) ? userClasses[currentPeriod.id] : null;
+            let nextClassPeriod = schedule.find(p => timeToMins(p.start) > currentMins && userClasses[p.id]);
+
+            if (activeClassName) {
+                // Determine when the current class chain ends
+                let lastConsecutivePeriod = currentPeriod;
+                for (let i = currentPeriodIdx + 1; i < schedule.length; i++) {
+                    if (userClasses[schedule[i].id] === activeClassName) {
+                        lastConsecutivePeriod = schedule[i];
+                    } else {
+                        break;
+                    }
+                }
+                const classEndSecs = timeToMins(lastConsecutivePeriod.end) * 60;
+                document.getElementById('status-label').innerText = `End of ${activeClassName}`;
+                document.getElementById('time-until-class').innerText = formatDiff(classEndSecs - currentSecs);
+            } else if (nextClassPeriod) {
+                // Not in class, show time until next class starts
+                const nextStartSecs = timeToMins(nextClassPeriod.start) * 60;
+                document.getElementById('status-label').innerText = `Time Until Next Class`;
+                document.getElementById('time-until-class').innerText = formatDiff(nextStartSecs - currentSecs);
+            } else {
+                document.getElementById('status-label').innerText = "School Finished";
+                document.getElementById('time-until-class').innerText = "DONE";
+            }
+
+            // 4. "Next Up" Sub-label
+            // Find the first class after the current class (or after the current period if not in class)
+            let upcoming;
+            if (activeClassName) {
+                // Search after the current block of periods
+                let searchIdx = currentPeriodIdx;
+                while (searchIdx < schedule.length && userClasses[schedule[searchIdx].id] === activeClassName) {
+                    searchIdx++;
+                }
+                upcoming = schedule.slice(searchIdx).find(p => userClasses[p.id]);
+            } else {
+                upcoming = nextClassPeriod;
+            }
+
+            const previewEl = document.getElementById('next-class-preview');
+            if (upcoming && userClasses[upcoming.id]) {
+                previewEl.innerText = `Next Up: ${userClasses[upcoming.id]}`;
+            } else {
+                previewEl.innerText = "";
+            }
+        }
+
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            document.getElementById('sun-svg').style.display = isLight ? 'none' : 'block';
+            document.getElementById('moon-svg').style.display = isLight ? 'block' : 'none';
+        });
+
+        setInterval(update, 1000);
+        update();
+    </script>
+</body>
+</html>
