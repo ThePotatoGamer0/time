@@ -27,7 +27,8 @@
       "3": { "0": "Reg", "1": "Photography", "2": "Photography", "3": "Art Project", "4": "Art Project", "5": "Lunch", "6": "IT", "7": "IT" },
       "4": { "0": "Reg", "1": "Photography", "2": "Photography", "3": "IT", "4": "IT", "5": "Study", "6": "Study", "break": "Break", "7": "Lunch", "8": "Moving Image Arts", "9": "Moving Image Arts" },
       "5": { "0": "Reg", "1": "Moving Image Arts", "2": "Study", "3": "Lunch", "4": "Study", "5": "Study", "6": "Photography", "7": "Photography" }
-    },
+    }
+  },
   "user4": {
     "name": "Lewis",
     "timetable": {
