@@ -14,7 +14,7 @@
     "timetable": {
       "1": { "0": "Reg", "1": "Maths", "2": "Maths", "3": "Study", "4": "Study", "5": "Science", "6": "Science", "break": "Break", "7": "Lunch", "8": "Env Tech", "9": "Env Tech" },
       "2": { "0": "Reg", "1": "Env Tech", "2": "Env Tech", "3": "UCAS", "4": "UCAS", "5": "Science", "break": "Break", "6": "Lunch", "7": "Science", "8": "Maths", "9": "Maths" },
-      "3": { "0": "Reg", "1": "Study", "2": "Study", "3": "UCAS", "4": "UCAS", "5": "Lunch", "6": "Env Tech", "7": "Env Tech" },
+      "3": { "0": "Reg", "1": "Study", "2": "Study", "3": "Enrichment", "4": "Enrichment", "5": "Lunch", "6": "Env Tech", "7": "Env Tech" },
       "4": { "0": "Reg", "1": "Study", "2": "Study", "3": "Env Tech", "4": "Env Tech", "5": "Science", "6": "Science", "break": "Break", "7": "Lunch", "8": "Maths", "9": "Maths" },
       "5": { "0": "Reg", "1": "Maths", "2": "Maths", "3": "Lunch", "4": "Science", "5": "Science", "6": "Study", "7": "Study" }
     }
@@ -37,6 +37,16 @@
       "3": { "0": "Reg", "1": "IT", "2": "IT", "3": "Enrichment", "4": "Enrichment", "5": "Lunch", "6": "Env Tech", "7": "Env Tech" },
       "4": { "0": "Reg", "1": "IT", "2": "IT", "3": "Env Tech", "4": "Env Tech", "5": "Study", "6": "Study", "break": "Break", "7": "Lunch", "8": "Business", "9": "Business" },
       "5": { "0": "Reg", "1": "Business", "2": "Business", "3": "Lunch", "4": "Study", "5": "Study", "6": "IT", "7": "IT" }
+    }
+  },
+  "user5": {
+    "name": "Ross",
+    "timetable": {
+      "1": { "0": "Reg", "1": "Moving Image Arts", "2": "Moving Image Arts", "3": "Photography", "4": "Photography", "5": "Home Economics", "6": "Home Economics", "break": "Break", "7": "Lunch", "8": "Study", "9": "Study" },
+      "2": { "0": "Reg", "1": "Study", "2": "Study", "3": "UCAS", "4": "UCAS", "5": "Home Economics", "break": "Break", "6": "Lunch", "7": "Home Economics", "8": "Moving Image Arts", "9": "Moving Image Arts" },
+      "3": { "0": "Reg", "1": "Photography", "2": "Photography", "3": "Enrichment", "4": "Enrichment", "5": "Lunch", "6": "Study", "7": "Study" },
+      "4": { "0": "Reg", "1": "Photography", "2": "Photography", "3": "Study", "4": "Study", "5": "Home Economics", "6": "Home Economics", "break": "Break", "7": "Lunch", "8": "Moving Image Arts", "9": "Moving Image Arts" },
+      "5": { "0": "Reg", "1": "Moving Image Arts", "2": "Study", "3": "Lunch", "4": "Home Economics", "5": "Home Economics", "6": "Photography", "7": "Photography" }
     }
   }
 }
