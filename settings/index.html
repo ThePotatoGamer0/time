@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | potatogamer.uk</title>
+    
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const theme = params.get('t');
+            const bg = params.get('bg');
+            const txt = params.get('txt');
+            const presets = {
+                dark: { bg: '000000', txt: 'ffffff' },
+                light: { bg: 'ffffff', txt: '000000' },
+                luxury: { bg: '1a2e35', txt: 'ffcc00' },
+                stars: { bg: '020111', txt: 'ffffff' }
+            };
+            if (theme && presets[theme]) {
+                document.documentElement.style.setProperty('--bg-color', `#${presets[theme].bg}`);
+                document.documentElement.style.setProperty('--text-main', `#${presets[theme].txt}`);
+                if (theme === 'stars') document.documentElement.classList.add('theme-stars');
+            } else if (theme === 'custom' && bg && txt) {
+                document.documentElement.style.setProperty('--bg-color', `#${bg}`);
+                document.documentElement.style.setProperty('--text-main', `#${txt}`);
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+    <style>
+        body { display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start; overflow: hidden; }
+        .sidebar { width: 250px; border-right: 1px solid var(--ui-border); padding: 20px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+        
+        /* Updated header with cursor pointer to hint interactivity */
+        .sidebar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; user-select: none; }
+        .sidebar-header h2 { font-size: 1.2rem; margin: 0; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
+        
+        .back-arrow { 
+            background: none; border: none; color: var(--text-main); cursor: pointer; padding: 5px; 
+            display: flex; align-items: center; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .back-arrow:hover { transform: translateX(-4px); }
+        .back-arrow:active { transform: translateX(-4px) scale(0.9); }
+        .back-arrow svg { width: 20px; height: 20px; }
+
+        .tab-btn { 
+            background: none; border: 1px solid transparent; color: var(--text-main); 
+            text-align: left; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 1rem;
+            transition: background 0.2s, transform 0.1s; 
+            user-select: none;
+        }
+        .tab-btn:hover { background: var(--ui-border); }
+        .tab-btn:active { transform: scale(0.98); }
+        .tab-btn.active { background: var(--ui-border); border-color: var(--text-dim); }
+        
+        /* Dev Tab Styling */
+        #btn-dev { display: none; border: 1px dashed var(--text-dim); color: #ff5555; }
+        #btn-dev.active { background: rgba(255, 85, 85, 0.1); border-color: #ff5555; color: #ff5555; }
+
+        .settings-content { flex-grow: 1; padding: 40px; overflow-y: auto; max-width: 800px; display: flex; flex-direction: column; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; flex-grow: 1; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .content-header { margin-bottom: 30px; }
+        .content-header h3 { margin: 0; font-size: 1.5rem; }
+
+        .control-group { margin-bottom: 30px; }
+        .control-group label { display: block; margin-bottom: 10px; color: var(--text-dim); }
+        
+        select, input[type="text"] { width: 100%; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--ui-border); padding: 10px; border-radius: 6px; cursor: pointer; }
+        
+        .color-pickers-container { display: flex; gap: 40px; margin-top: 20px; flex-wrap: wrap; }
+        .picker-box { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .hex-label { font-family: monospace; font-size: 0.9rem; color: var(--text-dim); }
+
+        .preview-box { margin-top: 40px; padding: 30px; border: 1px solid var(--ui-border); border-radius: 12px; text-align: center; }
+        
+        .action-bar { margin-top: 40px; display: flex; align-items: center; gap: 15px; border-top: 1px solid var(--ui-border); padding-top: 20px;}
+        
+        .btn-save { 
+            background: var(--text-main); color: var(--bg-color); border: none; 
+            padding: 12px 30px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;
+            box-shadow: 0 4px 0 var(--text-dim); transition: all 0.1s; position: relative; top: 0;
+        }
+        .btn-save:hover { filter: brightness(0.9); }
+        .btn-save:active { top: 3px; box-shadow: 0 1px 0 var(--text-dim); transform: scale(0.98); }
+        
+        /* Danger Button for Dev Tools */
+        .btn-danger { background: #ff5555; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-danger:hover { background: #ff3333; }
+
+        #apply-status { color: #44ff44; font-size: 0.9rem; font-weight: bold; opacity: 0; transition: opacity 0.3s; }
+
+        /* Timetable Styles */
+        .tt-table { width: 100%; border-collapse: collapse; margin-top: 20px; margin-bottom: 30px; }
+        .tt-table th, .tt-table td { padding: 12px; border: 1px solid var(--ui-border); text-align: left; }
+        .tt-table th { background: var(--ui-border); color: var(--text-main); }
+        .tt-day-header { font-weight: bold; color: var(--text-dim); margin-top: 20px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
+        .tt-break-row td.break-label { text-align: center; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Checkbox Style */
+        .control-group .toggle-wrapper { 
+            display: flex !important;
+            flex-direction: row; 
+            align-items: center; 
+            gap: 20px; 
+            cursor: pointer; 
+            width: 100%;
+        }
+        .toggle-box { 
+            width: 50px; height: 26px; background: var(--ui-border); border-radius: 13px; position: relative; transition: background 0.3s; flex-shrink: 0;
+        }
+        .toggle-box::after {
+            content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; 
+            background: var(--text-main); border-radius: 50%; transition: transform 0.3s;
+        }
+        .toggle-text { display: flex; flex-direction: column; gap: 5px; }
+        .toggle-title { font-weight: bold; font-size: 1rem; color: var(--text-main); }
+        .toggle-desc { color: var(--text-dim); font-size: 0.9rem; }
+
+        input[type="checkbox"] { display: none; }
+        input[type="checkbox"]:checked + .toggle-box { background: #44ff44; }
+        input[type="checkbox"]:checked + .toggle-box::after { transform: translateX(24px); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button class="back-arrow" onclick="cancelSettings()" title="Return to Main Page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <h2 onclick="unlockDevMenu()" title="Click 5 times for Dev Menu">Settings</h2>
+        </div>
+        <button class="tab-btn active" onclick="showTab('theme')">Theme</button>
+        <button class="tab-btn" onclick="showTab('timetable')">Timetable</button>
+        <button class="tab-btn" onclick="showTab('accessibility')">Accessibility</button>
+        <button id="btn-dev" class="tab-btn" onclick="showTab('dev')">Developer</button>
+    </div>
+
+    <div class="settings-content">
+        
+        <div id="tab-theme" class="tab-content active">
+            <div class="content-header"><h3>Theme Customization</h3></div>
+            <div class="control-group">
+                <label>Theme Preset</label>
+                <select id="presetSelector">
+                    <option value="custom">Custom</option>
+                    <option value="dark">Dark (Classic)</option>
+                    <option value="light">Light</option>
+                    <option value="luxury">Luxury</option>
+                </select>
+            </div>
+            <div id="customControls">
+                <div class="color-pickers-container">
+                    <div class="picker-box">
+                        <label>Background</label>
+                        <div id="bgWheel"></div>
+                        <span id="bgHex" class="hex-label">#000000</span>
+                    </div>
+                    <div class="picker-box">
+                        <label>Primary Text</label>
+                        <div id="txtWheel"></div>
+                        <span id="txtHex" class="hex-label">#FFFFFF</span>
+                    </div>
+                </div>
+            </div>
+            <div class="preview-box" id="previewBox">
+                <div class="label" style="font-size: 0.8rem; letter-spacing: 2px;">LIVE PREVIEW</div>
+                <div style="font-size: 3rem; font-weight: 800; font-variant-numeric: tabular-nums;">00:42:15.284</div>
+            </div>
+        </div>
+
+        <div id="tab-timetable" class="tab-content">
+            <div class="content-header"><h3>Your Timetable</h3></div>
+            
+            <div class="control-group">
+                <label>Select User</label>
+                <select id="userSelector">
+                    <option value="user1">James</option>
+                    <option value="user2">Ethan</option>
+                    <option value="user3">Chris</option>
+                    <option value="user4">Lewis</option>
+                    <option value="user5">Ross</option>
+                </select>
+            </div>
+
+            <div id="timetable-container">
+                <p style="color: var(--text-dim)">Loading timetable data...</p>
+            </div>
+        </div>
+
+        <div id="tab-accessibility" class="tab-content">
+            <div class="content-header"><h3>Accessibility</h3></div>
+            <div class="control-group">
+                <label>Animation Level</label>
+                <select id="animSelector">
+                    <option value="full">Full (Default)</option>
+                    <option value="minimal">Minimal (No Rolling Numbers)</option>
+                    <option value="none">None (No Animations)</option>
+                </select>
+                <p style="color: var(--text-dim); margin-top: 15px; font-size: 0.9rem; line-height: 1.5;">
+                    <strong>Full:</strong> All visual effects enabled.<br>
+                    <strong>Minimal:</strong> Disables rolling numbers but keeps interface transitions.<br>
+                    <strong>None:</strong> Removes all animations, including page fades and button effects.
+                </p>
+            </div>
+        </div>
+
+        <div id="tab-dev" class="tab-content">
+            <div class="content-header">
+                <h3>Developer Tools</h3>
+                <p style="color: #ff5555; margin-top: 5px; font-size: 0.9rem;">⚠️ Overrides live time data</p>
+            </div>
+            
+            <div class="control-group">
+                <label>Time Override (HH:MM:SS)</label>
+                <input type="text" id="devTimeInput" placeholder="e.g. 14:30:00">
+            </div>
+
+            <div class="control-group">
+                <label>Day Override</label>
+                <select id="devDaySelect">
+                    <option value="">-- Use Live Day --</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button class="btn-danger" onclick="clearDevOverrides()">Clear Overrides & Reset</button>
+            </div>
+        </div>
+
+        <div class="action-bar" id="actionBar">
+            <button class="btn-save" onclick="saveSettings()">Apply Changes</button>
+            <span id="apply-status">Changes Applied</span>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const previewBox = document.getElementById('previewBox');
+        const presetSelector = document.getElementById('presetSelector');
+        const statusMsg = document.getElementById('apply-status');
+        const animSelector = document.getElementById('animSelector');
+        const actionBar = document.getElementById('actionBar');
+        const userSelector = document.getElementById('userSelector');
+        const btnDev = document.getElementById('btn-dev');
+        
+        let isInternalChange = false;
+        let themeClickCount = 0; 
+        let settingsTitleClickCount = 0; // Dev menu counter
+
+        const themes = {
+            dark: { bg: "#000000", txt: "#FFFFFF" },
+            light: { bg: "#FFFFFF", txt: "#000000" },
+            luxury: { bg: "#1a2e35", txt: "#ffcc00" },
+            stars: { bg: "#020111", txt: "#FFFFFF" }
+        };
+
+        const currentAnim = params.get('anim') || 'full';
+        animSelector.value = currentAnim;
+        
+        if (currentAnim === 'none') {
+            const style = document.createElement('style');
+            style.innerHTML = `* { transition: none !important; animation: none !important; transform: none !important; }`;
+            document.head.appendChild(style);
+        }
+
+        const bgWheel = new iro.ColorPicker("#bgWheel", { width: 150, color: `#${params.get('bg') || '000000'}` });
+        const txtWheel = new iro.ColorPicker("#txtWheel", { width: 150, color: `#${params.get('txt') || 'ffffff'}` });
+
+        function initStars() {
+            if (document.querySelector('.stars')) return;
+            const layer = document.createElement('div');
+            layer.className = 'stars';
+            for(let i=0; i<50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                layer.appendChild(star);
+            }
+            document.body.appendChild(layer);
+        }
+
+        function updateUI(bg, txt, themeMode) {
+            document.getElementById('bgHex').innerText = bg.toUpperCase();
+            document.getElementById('txtHex').innerText = txt.toUpperCase();
+            
+            let displayBg = bg;
+            let displayTxt = txt;
+            if (themeMode !== 'custom' && themes[themeMode]) {
+                displayBg = themes[themeMode].bg;
+                displayTxt = themes[themeMode].txt;
+            }
+            previewBox.style.backgroundColor = displayBg;
+            previewBox.style.color = displayTxt;
+            document.documentElement.style.setProperty('--bg-color', displayBg);
+            document.documentElement.style.setProperty('--text-main', displayTxt);
+            
+            if (themeMode === 'stars') {
+                document.documentElement.classList.add('theme-stars');
+                initStars();
+            } else {
+                document.documentElement.classList.remove('theme-stars');
+            }
+        }
+
+        bgWheel.on('color:change', (color) => {
+            if (!isInternalChange) presetSelector.value = "custom";
+            updateUI(color.hexString, txtWheel.color.hexString, presetSelector.value);
+        });
+        txtWheel.on('color:change', (color) => {
+            if (!isInternalChange) presetSelector.value = "custom";
+            updateUI(bgWheel.color.hexString, color.hexString, presetSelector.value);
+        });
+        presetSelector.addEventListener('change', (e) => {
+            isInternalChange = true;
+            updateUI(bgWheel.color.hexString, txtWheel.color.hexString, e.target.value);
+            isInternalChange = false;
+        });
+
+        // Initialize State
+        const startT = params.get('t') || 'custom';
+        if (startT === 'stars') {
+            const opt = document.createElement('option');
+            opt.value = 'stars';
+            opt.innerText = 'Stars (Secret)';
+            presetSelector.appendChild(opt);
+        }
+        
+        presetSelector.value = startT;
+        updateUI(bgWheel.color.hexString, txtWheel.color.hexString, startT);
+
+        // --- DEV MENU LOGIC ---
+        // Check if dev menu was previously unlocked via URL
+        if (params.get('dev') === '1') {
+            btnDev.style.display = 'block';
+            document.getElementById('devTimeInput').value = params.get('devt') || '';
+            document.getElementById('devDaySelect').value = params.get('devd') || '';
+        }
+
+        function unlockDevMenu() {
+            settingsTitleClickCount++;
+            if (settingsTitleClickCount === 5) {
+                btnDev.style.display = 'block';
+                // Persist the unlock via URL
+                params.set('dev', '1');
+                const newURL = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({}, '', newURL);
+                alert("Developer Mode Unlocked! 🛠️");
+            }
+        }
+
+        function clearDevOverrides() {
+            params.delete('devt');
+            params.delete('devd');
+            // We do NOT remove 'dev=1' so the menu stays open
+            const newURL = `${window.location.pathname}?${params.toString()}`;
+            window.location.href = newURL; // Force reload to clear state cleanly
+        }
+
+        // --- User Selector Logic ---
+        userSelector.addEventListener('change', (e) => {
+            params.set('u', e.target.value);
+            const newURL = `${window.location.pathname}?${params.toString()}`;
+            window.history.pushState({}, '', newURL);
+            loadTimetable();
+        });
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.target.classList.add('active');
+
+            // --- EASTER EGG LOGIC ---
+            if (tabName === 'theme') {
+                themeClickCount++;
+                if (themeClickCount === 7) {
+                    if (!document.querySelector('option[value="stars"]')) {
+                        const opt = document.createElement('option');
+                        opt.value = 'stars';
+                        opt.innerText = 'Stars (Secret)';
+                        presetSelector.appendChild(opt);
+                        presetSelector.value = 'stars';
+                        updateUI("", "", "stars"); 
+                        alert("Achievement Unlocked: Space Traveler! 🚀");
+                    }
+                }
+            } else {
+                themeClickCount = 0;
+            }
+
+            // Hide main apply button if on Timetable, otherwise show
+            if (tabName === 'timetable') {
+                actionBar.style.display = 'none';
+                loadTimetable();
+            } else {
+                actionBar.style.display = 'flex';
+            }
+        }
+
+        async function loadTimetable() {
+            const container = document.getElementById('timetable-container');
+            const user = params.get('u') || 'user1'; 
+            userSelector.value = user;
+
+            try {
+                const res = await fetch('../users.json');
+                const data = await res.json();
+                
+                if (!data[user]) {
+                    container.innerHTML = '<p>User not found.</p>';
+                    return;
+                }
+
+                const periodTimesLong = {
+                    "0": "09:10", "1": "09:25", "2": "10:05", "Break": "10:45",
+                    "3": "11:00", "4": "11:40", "5": "12:20", "6": "13:00",
+                    "7": "13:35", "8": "14:10", "9": "14:50"
+                };
+                const periodTimesShort = {
+                    "0": "09:10", "1": "09:25", "2": "10:05",
+                    "3": "10:45", "4": "11:25", "5": "12:05", "6": "12:45", "7": "13:25"
+                };
+
+                let html = '';
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+                const longOrder = ['0', '1', '2', 'Break', '3', '4', '5', '6', '7', '8', '9'];
+                const shortOrder = ['0', '1', '2', '3', '4', '5', '6', '7'];
+
+                for (let i = 1; i <= 5; i++) {
+                    const classes = data[user].timetable[i];
+                    if (!classes) continue;
+                    
+                    html += `<div class="tt-day-header">${days[i-1]}</div>`;
+                    html += `<table class="tt-table"><thead><tr><th>Time</th><th>Period</th><th>Class</th></tr></thead><tbody>`;
+                    
+                    const isShort = (i === 3 || i === 5);
+                    const order = isShort ? shortOrder : longOrder;
+                    const times = isShort ? periodTimesShort : periodTimesLong;
+
+                    order.forEach(p => {
+                        const time = times[p] || "";
+                        if (p === 'Break') {
+                             html += `<tr class="tt-break-row"><td>${time}</td><td colspan="2" class="break-label">BREAK</td></tr>`;
+                        } else {
+                             const className = classes[p];
+                             if (className) {
+                                 html += `<tr><td>${time}</td><td>${p}</td><td>${className}</td></tr>`;
+                             }
+                        }
+                    });
+                    
+                    html += `</tbody></table>`;
+                }
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = '<p>Error loading timetable.</p>';
+                console.error(e);
+            }
+        }
+
+        function saveSettings() {
+            params.set('bg', bgWheel.color.hexString.replace('#', ''));
+            params.set('txt', txtWheel.color.hexString.replace('#', ''));
+            params.set('t', presetSelector.value);
+            
+            if (animSelector.value !== 'full') {
+                params.set('anim', animSelector.value);
+            } else {
+                params.delete('anim');
+            }
+
+            // --- DEV SETTINGS SAVE ---
+            const devTime = document.getElementById('devTimeInput').value;
+            const devDay = document.getElementById('devDaySelect').value;
+            
+            if (devTime) params.set('devt', devTime);
+            else params.delete('devt');
+            
+            if (devDay) params.set('devd', devDay);
+            else params.delete('devd');
+            
+            const newURL = `${window.location.pathname}?${params.toString()}`;
+            window.history.pushState({}, '', newURL);
+
+            if (animSelector.value === 'none') {
+                const style = document.createElement('style');
+                style.innerHTML = `* { transition: none !important; animation: none !important; transform: none !important; }`;
+                document.head.appendChild(style);
+            }
+
+            statusMsg.style.opacity = "1";
+            setTimeout(() => { statusMsg.style.opacity = "0"; }, 2000);
+        }
+
+        function cancelSettings() {
+            window.location.href = `../?${params.toString()}`;
+        }
+    </script>
+</body>
+</html>

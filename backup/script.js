@@ -1,6 +1,5 @@
 let userData = {};
 let timeOffset = 0;
-let animMode = 'full'; 
 let precision = {
     'time-until-class': false,
     'time-until-period': false,
@@ -59,13 +58,11 @@ function updateRollingTimer(id, newStr) {
     if (!container) return;
     const oldStr = lastStrings[id];
     if (oldStr === newStr) return;
-
-    if (precision[id] || animMode !== 'full') {
+    if (precision[id]) {
         container.innerText = newStr;
         lastStrings[id] = newStr;
         return;
     }
-
     if (container.children.length !== newStr.length) {
         container.innerHTML = '';
         [...newStr].forEach(char => {
@@ -75,7 +72,6 @@ function updateRollingTimer(id, newStr) {
             container.appendChild(span);
         });
     }
-
     [...newStr].forEach((char, i) => {
         const span = container.children[i];
         if (span.innerText !== char) {
@@ -118,40 +114,19 @@ async function syncTime() {
     } catch (e) { console.warn("Time sync failed"); }
 }
 
-function initStars() {
-    if (document.querySelector('.stars')) return;
-    const layer = document.createElement('div');
-    layer.className = 'stars';
-    for(let i=0; i<50; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        layer.appendChild(star);
-    }
-    document.body.appendChild(layer);
-}
-
 async function loadDataAndInit() {
     try {
         await syncTime();
         const response = await fetch('users.json');
         userData = await response.json();
         const params = new URLSearchParams(window.location.search);
-        
-        // Note: No longer setting dropdown value as it was removed from index.html
-
-        animMode = params.get('anim') || 'full';
-        
-        if (animMode === 'none') {
-            const style = document.createElement('style');
-            style.innerHTML = `* { transition: none !important; animation: none !important; transform: none !important; }`;
-            document.head.appendChild(style);
-        }
+        const user = params.get('u');
+        if (user && userData[user]) document.getElementById('userSelector').value = user;
 
         const presets = {
             dark: { bg: '000000', txt: 'ffffff' },
             light: { bg: 'ffffff', txt: '000000' },
-            luxury: { bg: '1a2e35', txt: 'ffcc00' },
-            stars: { bg: '020111', txt: 'ffffff' }
+            luxury: { bg: '1a2e35', txt: 'ffcc00' }
         };
 
         const theme = params.get('t');
@@ -161,10 +136,6 @@ async function loadDataAndInit() {
         if (theme && presets[theme]) {
             document.documentElement.style.setProperty('--bg-color', `#${presets[theme].bg}`);
             document.documentElement.style.setProperty('--text-main', `#${presets[theme].txt}`);
-            if (theme === 'stars') {
-                document.body.classList.add('theme-stars');
-                initStars();
-            }
         } else if (theme === 'custom' && bg && txt) {
             document.documentElement.style.setProperty('--bg-color', `#${bg}`);
             document.documentElement.style.setProperty('--text-main', `#${txt}`);
@@ -203,12 +174,11 @@ function update() {
     if (!schedule) {
         document.getElementById('status-label').innerText = "Weekend";
         updateRollingTimer('time-until-class', "OFF");
-        document.title = "Weekend | potatogamer.uk";
+        document.title = "Weekend | potatogamer.uk"; // restored title
         return;
     }
 
-    // Get user from URL directly, defaulting to 'user1'
-    const user = params.get('u') || 'user1';
+    const user = document.getElementById('userSelector').value;
     const classes = userData[user]?.timetable[day] || {};
 
     const endMs = timeToMins(schedule[schedule.length - 1].end) * 60000;
@@ -234,19 +204,20 @@ function update() {
         const diffText = formatDiff(diff, precision['time-until-class']);
         document.getElementById('status-label').innerText = `End of ${active}`;
         updateRollingTimer('time-until-class', diffText);
-        document.title = `${diffText} till ${active} ends | potatogamer.uk`;
+        document.title = `${diffText} till ${active} ends | potatogamer.uk`; // restored title
     } else if (next) {
         const diff = (timeToMins(next.start) * 60000) - currentMs;
         const diffText = formatDiff(diff, precision['time-until-class']);
         document.getElementById('status-label').innerText = `Next Class`;
         updateRollingTimer('time-until-class', diffText);
-        document.title = `${diffText} till ${classes[next.id]} starts | potatogamer.uk`;
+        document.title = `${diffText} till ${classes[next.id]} starts | potatogamer.uk`; // restored title
     } else {
         document.getElementById('status-label').innerText = "School Finished";
         updateRollingTimer('time-until-class', "DONE");
-        document.title = "School Finished | potatogamer.uk";
+        document.title = "School Finished | potatogamer.uk"; // restored title
     }
 
+    // restored next class preview
     let up = active ? schedule.slice(pIdx + 1).find(p => classes[p.id] && classes[p.id] !== active) : next;
     const previewEl = document.getElementById('next-class-preview');
     if (previewEl) {

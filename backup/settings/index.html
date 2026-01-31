@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | potatogamer.uk</title>
+    
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const theme = params.get('t');
+            const bg = params.get('bg');
+            const txt = params.get('txt');
+            const presets = {
+                dark: { bg: '000000', txt: 'ffffff' },
+                light: { bg: 'ffffff', txt: '000000' },
+                luxury: { bg: '1a2e35', txt: 'ffcc00' }
+            };
+            if (theme && presets[theme]) {
+                document.documentElement.style.setProperty('--bg-color', `#${presets[theme].bg}`);
+                document.documentElement.style.setProperty('--text-main', `#${presets[theme].txt}`);
+                if (theme === 'light') document.documentElement.classList.add('light-mode');
+            } else if (theme === 'custom' && bg && txt) {
+                document.documentElement.style.setProperty('--bg-color', `#${bg}`);
+                document.documentElement.style.setProperty('--text-main', `#${txt}`);
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+    <style>
+        body { display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start; overflow: auto; }
+        .sidebar { width: 250px; border-right: 1px solid var(--ui-border); padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        
+        .sidebar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .sidebar-header h2 { font-size: 1.2rem; margin: 0; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .back-arrow { 
+            background: none; border: none; color: var(--text-main); cursor: pointer; padding: 5px; 
+            display: flex; align-items: center; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .back-arrow:hover { transform: translateX(-4px); }
+        .back-arrow:active { transform: translateX(-4px) scale(0.9); }
+        .back-arrow svg { width: 20px; height: 20px; }
+
+        .tab-btn, select { 
+            background: none; border: 1px solid transparent; color: var(--text-main); 
+            text-align: left; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 1rem;
+            transition: background 0.2s, transform 0.1s; 
+        }
+        .tab-btn:hover, select:hover { background: var(--ui-border); }
+        .tab-btn:active, select:active { transform: scale(0.98); }
+        .tab-btn.active { background: var(--ui-border); border-color: var(--text-dim); }
+        
+        .settings-content { flex-grow: 1; padding: 40px; max-width: 600px; }
+        .content-header { margin-bottom: 30px; }
+        .content-header h3 { margin: 0; font-size: 1.5rem; }
+
+        .control-group { margin-bottom: 30px; }
+        .control-group label { display: block; margin-bottom: 10px; color: var(--text-dim); }
+        
+        .color-pickers-container { display: flex; gap: 40px; margin-top: 20px; flex-wrap: wrap; }
+        .picker-box { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .hex-label { font-family: monospace; font-size: 0.9rem; color: var(--text-dim); }
+
+        .preview-box { margin-top: 40px; padding: 30px; border: 1px solid var(--ui-border); border-radius: 12px; text-align: center; }
+        .action-bar { margin-top: 40px; display: flex; align-items: center; gap: 15px; }
+        
+        .btn-save { 
+            background: var(--text-main); color: var(--bg-color); border: none; 
+            padding: 12px 30px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;
+            box-shadow: 0 4px 0 var(--text-dim);
+            transition: all 0.1s;
+            position: relative;
+            top: 0;
+        }
+        .btn-save:hover { filter: brightness(0.9); }
+        .btn-save:active {
+            top: 3px;
+            box-shadow: 0 1px 0 var(--text-dim);
+            transform: scale(0.98);
+        }
+        
+        #apply-status { color: #44ff44; font-size: 0.9rem; font-weight: bold; opacity: 0; transition: opacity 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button class="back-arrow" onclick="cancelSettings()" title="Return to Main Page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <h2>Settings</h2>
+        </div>
+        <button class="tab-btn active">Theme</button>
+    </div>
+
+    <div class="settings-content">
+        <div id="theme-tab">
+            <div class="content-header">
+                <h3>Theme Customization</h3>
+            </div>
+
+            <div class="control-group">
+                <label>Theme Preset</label>
+                <select id="presetSelector">
+                    <option value="custom">Custom</option>
+                    <option value="dark">Dark (Classic)</option>
+                    <option value="light">Light</option>
+                    <option value="luxury">Luxury</option>
+                </select>
+            </div>
+
+            <div id="customControls">
+                <div class="color-pickers-container">
+                    <div class="picker-box">
+                        <label>Background</label>
+                        <div id="bgWheel"></div>
+                        <span id="bgHex" class="hex-label">#000000</span>
+                    </div>
+                    <div class="picker-box">
+                        <label>Primary Text</label>
+                        <div id="txtWheel"></div>
+                        <span id="txtHex" class="hex-label">#FFFFFF</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-box" id="previewBox">
+                <div class="label" style="font-size: 0.8rem; letter-spacing: 2px;">LIVE PREVIEW</div>
+                <div style="font-size: 3rem; font-weight: 800; font-variant-numeric: tabular-nums;">00:42:15.284</div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn-save" onclick="saveSettings()">Apply Changes</button>
+            <span id="apply-status">Changes Applied</span>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const previewBox = document.getElementById('previewBox');
+        const presetSelector = document.getElementById('presetSelector');
+        const statusMsg = document.getElementById('apply-status');
+        let isInternalChange = false;
+
+        const themes = {
+            dark: { bg: "#000000", txt: "#FFFFFF" },
+            light: { bg: "#FFFFFF", txt: "#000000" },
+            luxury: { bg: "#1a2e35", txt: "#ffcc00" }
+        };
+
+        const bgWheel = new iro.ColorPicker("#bgWheel", { width: 150, color: `#${params.get('bg') || '000000'}` });
+        const txtWheel = new iro.ColorPicker("#txtWheel", { width: 150, color: `#${params.get('txt') || 'ffffff'}` });
+
+        function updateUI(bg, txt, themeMode) {
+            document.getElementById('bgHex').innerText = bg.toUpperCase();
+            document.getElementById('txtHex').innerText = txt.toUpperCase();
+            
+            let displayBg = bg;
+            let displayTxt = txt;
+
+            if (themeMode !== 'custom' && themes[themeMode]) {
+                displayBg = themes[themeMode].bg;
+                displayTxt = themes[themeMode].txt;
+            }
+
+            previewBox.style.backgroundColor = displayBg;
+            previewBox.style.color = displayTxt;
+            document.documentElement.style.setProperty('--bg-color', displayBg);
+            document.documentElement.style.setProperty('--text-main', displayTxt);
+        }
+
+        bgWheel.on('color:change', (color) => {
+            if (!isInternalChange) presetSelector.value = "custom";
+            updateUI(color.hexString, txtWheel.color.hexString, presetSelector.value);
+        });
+
+        txtWheel.on('color:change', (color) => {
+            if (!isInternalChange) presetSelector.value = "custom";
+            updateUI(bgWheel.color.hexString, color.hexString, presetSelector.value);
+        });
+
+        presetSelector.addEventListener('change', (e) => {
+            isInternalChange = true;
+            updateUI(bgWheel.color.hexString, txtWheel.color.hexString, e.target.value);
+            isInternalChange = false;
+        });
+
+        const startT = params.get('t') || 'custom';
+        presetSelector.value = startT;
+        updateUI(bgWheel.color.hexString, txtWheel.color.hexString, startT);
+
+        function saveSettings() {
+            params.set('bg', bgWheel.color.hexString.replace('#', ''));
+            params.set('txt', txtWheel.color.hexString.replace('#', ''));
+            params.set('t', presetSelector.value);
+            
+            const newURL = `${window.location.pathname}?${params.toString()}`;
+            window.history.pushState({}, '', newURL);
+
+            statusMsg.style.opacity = "1";
+            setTimeout(() => {
+                statusMsg.style.opacity = "0";
+            }, 2000);
+        }
+
+        function cancelSettings() {
+            window.location.href = `../?${params.toString()}`;
+        }
+    </script>
+</body>
+</html>

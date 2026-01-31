@@ -14,13 +14,13 @@
             const presets = {
                 dark: { bg: '000000', txt: 'ffffff' },
                 light: { bg: 'ffffff', txt: '000000' },
-                luxury: { bg: '1a2e35', txt: 'ffcc00' },
-                stars: { bg: '020111', txt: 'ffffff' }
+                luxury: { bg: '1a2e35', txt: 'ffcc00' }
             };
+
             if (theme && presets[theme]) {
                 document.documentElement.style.setProperty('--bg-color', `#${presets[theme].bg}`);
                 document.documentElement.style.setProperty('--text-main', `#${presets[theme].txt}`);
-                if (theme === 'stars') document.documentElement.classList.add('theme-stars');
+                if (theme === 'light') document.documentElement.classList.add('light-mode');
             } else if (theme === 'custom' && bg && txt) {
                 document.documentElement.style.setProperty('--bg-color', `#${bg}`);
                 document.documentElement.style.setProperty('--text-main', `#${txt}`);
@@ -59,6 +59,16 @@
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
     </a>
+
+    <div class="controls">
+        <select id="userSelector" onchange="updateURLParam('u', this.value)">
+            <option value="user1">James</option>
+            <option value="user2">Ethan</option>
+            <option value="user3">Chris</option>
+            <option value="user4">Lewis</option>
+            <option value="user5">Ross</option>
+        </select>
+    </div>
 
     <div class="container">
         <div id="status-label" class="label">Status</div>
